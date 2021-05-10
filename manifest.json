@@ -1,0 +1,7 @@
+{
+  "name": "Figma to CSS",
+  "id": "972939585144317012",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html"
+}

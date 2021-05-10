@@ -1,0 +1,72 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+pre {
+  margin: 0;
+}
+.grid {
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr;
+  height: 100vh;
+  display: grid;
+}
+.tabs {
+  display: flex;
+}
+
+.tabs > * {
+  flex: 1;
+  padding: .5rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.tab-radio {
+  display: none;
+}
+.css, .config {
+  display: none;
+  overflow: auto;
+  padding: .5rem;
+}
+input[id="css-tab"]:checked ~ .tabs .css-tab,
+input[id="config-tab"]:checked ~ .tabs .config-tab{
+  background: #3d3d3d;
+  color: white;
+}
+input[id="css-tab"]:checked ~ .css {
+  display: block;
+}
+
+input[id="config-tab"]:checked ~ .config {
+  display: block;
+}
+
+.bubble {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: .5rem;
+  color: white;
+  background: red;
+  opacity: 0;
+  margin: 0;
+}
+
+.bubble.is-animated {
+  animation: 1s bubble;
+  animation-iteration-count: infinite;
+}
+
+@keyframes bubble {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
