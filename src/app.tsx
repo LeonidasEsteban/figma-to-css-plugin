@@ -63,7 +63,7 @@ function App() {
       case 'font':
         buildStyles([message.payload])
         break
-      case 'fontStyles':
+      case 'styles':
         buildStyles(message.payload)
         break
       default:

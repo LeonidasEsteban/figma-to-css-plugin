@@ -34,19 +34,39 @@ figma.ui.onmessage = (message) => {
   }
 }
 
+function buildFontStyle(style) {
+  switch (style) {
+    case 'light':
+      return 300
+    case 'regular':
+      return 400
+    case 'medium':
+      return 500
+    case 'semibold':
+      return 600
+    case 'bold':
+      return 700
+    case 'black':
+      return 800
+    default:
+      return style
+  }
+}
+
 function textToFont(element) {
   // console.log(element)
   const fontSize = pixelToRem(element.fontSize)
   const lineHeight = element.lineHeight.value ? `${pixelToRem(element.lineHeight.value)}` : 'normal'
   const fontFamily = element.fontName.family
-  const fontStyle = element.fontName.style.toLowerCase()
+  let fontStyle = buildFontStyle(element.fontName.style.toLowerCase())
+
   const font = `${fontStyle} ${fontSize}/${lineHeight} ${fontFamily}`
   return font
 }
 
-function toCustomProperty(fontStyle, styleName) {
-  const customProperty = `--${styleName.replaceAll(' ','').replaceAll('/', '-').toLowerCase()}`
-  return `${customProperty}: ${fontStyle};`
+function toCustomProperty(value, name) {
+  const customProperty = `--${name.replaceAll(' ','').replaceAll('/', '-').toLowerCase()}`
+  return `${customProperty}: ${value};`
 }
 
 function toFontProperty(style) {
@@ -77,7 +97,45 @@ const fontStyles = textStyles.map((textStyle) => {
   return toCustomProperty(textToFont(textStyle), textStyle.name)
 })
 
+
+// Colors
+
+const colorStyles = figma.getLocalPaintStyles();
+var hexValueAndName = []; // array of hex values and their names
+var hexValues = []; //array with hex values only
+
+function makeHex(r, g, b) {
+  let red = rgbToHex(r);
+  let green = rgbToHex(g);
+  let blue = rgbToHex(b);
+  return red + green + blue;
+}
+
+function rgbToHex(int) {
+  var hex = Number(int).toString(16);
+  if (hex.length < 2) {
+    hex = "0" + hex;
+  }
+  return hex;
+}
+
+colorStyles.forEach(style => {
+  let name = style.name;
+  let r = Math.round(255 * (style.paints[0].color.r));
+  let g = Math.round(255 * (style.paints[0].color.g));
+  let b = Math.round(255 * (style.paints[0].color.b));
+  let hex = makeHex(r, g, b);
+  let result = { name, hex };
+  hexValueAndName.push(result);
+  hexValues.push(hex);
+});
+
+const colorStylesProps = hexValueAndName.map((color) => {
+  return toCustomProperty(`#${color.hex}`, color.name)
+})
+
+
 figma.ui.postMessage({
-  type: 'fontStyles',
-  payload: fontStyles
+  type: 'styles',
+  payload: [...colorStylesProps, ...fontStyles]
 })
