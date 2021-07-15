@@ -1,4 +1,9 @@
-figma.showUI(__html__);
+
+figma.showUI(__html__, {
+  width: 500,
+  height: 500,
+});
+
 
 const config = {
   remSize: 16,
@@ -36,6 +41,10 @@ figma.ui.onmessage = (message) => {
 
 function buildFontStyle(style) {
   switch (style) {
+    case 'thin':
+      return 100
+    case 'extra-light':
+      return 200
     case 'light':
       return 300
     case 'regular':
@@ -46,8 +55,10 @@ function buildFontStyle(style) {
       return 600
     case 'bold':
       return 700
-    case 'black':
+    case 'extra-bold':
       return 800
+    case 'black':
+      return 900
     default:
       return style
   }
@@ -108,30 +119,71 @@ function makeHex(r, g, b) {
   let red = rgbToHex(r);
   let green = rgbToHex(g);
   let blue = rgbToHex(b);
-  return red + green + blue;
+  return '#' + red + green + blue;
 }
 
 function rgbToHex(int) {
-  var hex = Number(int).toString(16);
+  var hex = Number(Math.round(255 * int)).toString(16);
   if (hex.length < 2) {
     hex = "0" + hex;
   }
   return hex;
 }
 
+function convertToDegrees(matrix) {
+  const values = [...matrix[0], ...matrix[1]];
+  const a = values[0];
+  const b = values[1];
+  const angle = Math.round(Math.atan2(b, a) * (180 / Math.PI));
+  return angle < 0 ? angle + 360 : angle;
+}
+
+function getTx(deg) {
+  if (deg >= 120) {
+    if (deg >= 180) {
+      return 1;
+    }
+    return 0.5;
+  }
+  return 0;
+}
+
+function getDegreesForMatrix(matrix) {
+  const degrees = convertToDegrees(matrix) || 0;
+  return `${degrees}deg`;
+}
+
+function convertFigmaGradientToString(paint: GradientPaint) {
+  const { gradientTransform, gradientStops } = paint;
+  const gradientStopsString = gradientStops
+    .map((stop) => {
+      console.log(stop.color.r)
+      return `#${rgbToHex(stop.color.r)}${rgbToHex(stop.color.g)}${rgbToHex(stop.color.b)} ${Math.round(stop.position * 100 * 100) / 100}%`
+    })
+    .join(', ');
+  const gradientTransformString = getDegreesForMatrix(gradientTransform);
+  return `linear-gradient(${gradientTransformString}, ${gradientStopsString})`;
+}
+
 colorStyles.forEach(style => {
   let name = style.name;
-  let r = Math.round(255 * (style.paints[0].color.r));
-  let g = Math.round(255 * (style.paints[0].color.g));
-  let b = Math.round(255 * (style.paints[0].color.b));
-  let hex = makeHex(r, g, b);
+  if (style.paints[0].type.includes('GRADIENT')) {
+    // debugger
+    hexValueAndName.push({
+      name,
+      hex: convertFigmaGradientToString(style.paints[0]),
+    })
+    return false
+  }
+
+  let hex = makeHex(style.paints[0].color.r, style.paints[0].color.g, style.paints[0].color.b);
   let result = { name, hex };
   hexValueAndName.push(result);
   hexValues.push(hex);
 });
 
 const colorStylesProps = hexValueAndName.map((color) => {
-  return toCustomProperty(`#${color.hex}`, color.name)
+  return toCustomProperty(color.hex, color.name)
 })
 
 
